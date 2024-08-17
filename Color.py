@@ -1,6 +1,8 @@
 from random import randint
 import random
 
+type Color = tuple[int, int, int]
+
 sample = {
     'RED': (255, 0, 0),
     'GREEN': (0, 255, 0),
@@ -10,7 +12,7 @@ sample = {
 }
 
 
-def randomColor():
+def randomColor() -> Color:
     r = randint(20, 255)
     g = 0
     b = 0
@@ -18,6 +20,6 @@ def randomColor():
     return (r, g, b)
 
 
-def randomSample():
+def randomSample() -> Color:
     key=random.choice(sample.keys())
     return sample[key]

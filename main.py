@@ -1,55 +1,53 @@
+from typing import Self
 import pygame
 
-import Color
 import Settings
-from Tree import Tree
-from Ball import Ball
-from random import randint
+from enum import Enum
+from ScreenSegment import *;
 
-exit = False
+class RunningState(Enum):
+    STARTED = 0
+    PAUSED = 1
+    DONE = 2
 
-pygame.init()
+class App:
+    def __init__(self) -> None:
+        pygame.init()
+        self.screen = pygame.display.set_mode((Settings.WIDTH, Settings.HEIGHT))
+        pygame.display.set_caption("DLA Algorithm")
+        self.clock = pygame.time.Clock()
+        self.state: RunningState = RunningState.STARTED
+        self.segment_grid: SegmentGrid = SegmentGrid()
+        self.init_objects()
+        pass
 
-screen = pygame.display.set_mode((Settings.WIDTH,Settings.HEIGHT))
-pygame.display.set_caption('DLA Algorithm')
+    def __del__(self) -> None:
+        pygame.quit()
 
-clock = pygame.time.Clock()
+    def init_objects(self) -> None:
+        pass
 
-tree = Tree()
-tree.append(Ball())
+    def debug_draw(self) -> None:
+        self.segment_grid.debug_draw(self.screen)
 
-balls = []
+    def run(self) -> None:
+        while self.state is not RunningState.DONE:
+            self.screen.fill(Color.sample["BLACK"])
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    self.state = RunningState.DONE
 
-for i in range(Settings.WALKERS_COUNT):
-    x = randint(Settings.RADIUS, Settings.WIDTH-Settings.RADIUS)
-    y = randint(Settings.RADIUS, Settings.HEIGHT-Settings.RADIUS)
-    balls.append(Ball(x,y))
+            if Settings.DEBUG_DRAW:
+                self.debug_draw()
 
-while True:
-    for event in pygame.event.get():
-        if event.type==pygame.QUIT:
-            exit = True
+            pygame.display.flip()
+            self.clock.tick(Settings.FPS)
+        pass
+        
+if __name__ == "__main__":
+    app = App()
+    app.run()
 
-    screen.fill(Color.sample['BLACK'])
 
-    #new_balls = balls
 
-    for i in range(len(balls)-1, -1, -1):
-        balls[i].isStuck(tree.items)
-        balls[i].update()
-        balls[i].draw(screen)
-        if balls[i].stuck:
-            tree.append(balls[i])
-            del balls[i]
-
-    tree.draw(screen)
-
-    pygame.display.update()
-    clock.tick(Settings.FPS)
-
-    if exit:
-        break
-
-pygame.quit()
-quit()
 
