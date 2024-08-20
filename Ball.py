@@ -1,7 +1,6 @@
 import math
 from random import randint
 from typing import Self
-import pygame
 from pygame import gfxdraw
 import Color
 import Settings
@@ -16,16 +15,16 @@ class Boundry(Enum):
 
 class Ball:
     def __init__(self, position: Vector):
+        self.update_count: int = 0
         self.position: Vector = position
         self.velocity: Vector = origin()
-        self.acceleartion: Vector = random_vec()
-        self.radius: int = 0
-        self.color: Color = Color.sample["BLACK"]
+        self.radius: int = Settings.RADIUS
+        self.color: Color = Color.sample["RED"]
         pass
 
     def draw(self, screen):
-        gfxdraw.aacircle(screen, self.position.x(), self.position.y(), self.radius, self.color)
-        gfxdraw.filled_circle(screen, int(self.position.x), int(self.position.y), self.radius, self.color)
+        gfxdraw.aacircle(screen, int(self.position.x), int(self.position.y), int(self.radius), self.color)
+        gfxdraw.filled_circle(screen, int(self.position.x), int(self.position.y), int(self.radius), self.color)
         pass
 
     def distance(self, object: Self) -> float:
@@ -47,15 +46,14 @@ class Ball:
         hitted_boundry = self.detect_boundry_hit(dt)
         if hitted_boundry == Boundry.HORIZONTAL:
             self.velocity.x = -self.velocity.x
-            self.acceleartion.x = -self.acceleartion.x
         elif hitted_boundry == Boundry.VERTICAL:
             self.velocity.y = -self.velocity.y
-            self.acceleartion.y = -self.acceleartion.y
 
     def update(self, dt) -> None:
         self.handle_boundry_hit(dt)
-        
-        if self.velocity.length() <= Settings.MAX_VELOCITY:
-            self.velocity += self.acceleartion * dt
+        if self.update_count == Settings.VELOCITY_UPDATE_FREQ:
+            self.velocity = random_vec(Settings.MAX_VELOCITY)
+            self.update_count = 0
         self.position += self.velocity * dt
+        self.update_count += 1
         pass

@@ -1,6 +1,8 @@
 from typing import Self
 import pygame
 
+from Ball import Ball
+from CommonTypes import Vector
 import Settings
 from enum import Enum
 from ScreenSegment import *;
@@ -18,14 +20,20 @@ class App:
         self.clock = pygame.time.Clock()
         self.state: RunningState = RunningState.STARTED
         self.segment_grid: SegmentGrid = SegmentGrid()
-        self.init_objects()
         pass
 
     def __del__(self) -> None:
         pygame.quit()
 
-    def init_objects(self) -> None:
-        pass
+    # def update_objects(self) -> None:
+    #     for obj in self.objects:
+    #         obj.update(1/Settings.FPS)
+    #     pass
+
+    # def draw_objects(self) -> None:
+    #     for obj in self.objects:
+    #         obj.draw(self.screen)
+    #     pass
 
     def debug_draw(self) -> None:
         self.segment_grid.debug_draw(self.screen)
@@ -36,6 +44,18 @@ class App:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.state = RunningState.DONE
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_p:
+                        if self.state is RunningState.PAUSED:
+                            self.state = RunningState.STARTED
+                        else:
+                            self.state = RunningState.PAUSED
+
+                
+            if self.state is RunningState.STARTED:
+                self.segment_grid.update()
+                
+            self.segment_grid.draw(self.screen)
 
             if Settings.DEBUG_DRAW:
                 self.debug_draw()
