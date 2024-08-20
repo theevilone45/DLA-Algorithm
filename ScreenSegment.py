@@ -18,6 +18,26 @@ class Neighbours:
         self.down_left: ScreenSegment = None
         self.down_right: ScreenSegment = None
 
+    def get_list(self): # type: ignore
+        return [
+            self.up,
+            self.left,
+            self.down,
+            self.right,
+            self.up_left,
+            self.up_right,
+            self.down_left,
+            self.down_right,
+        ]
+    
+    def get_neighbour(self, grid_x: int, grid_y: int):
+        for seg in self.get_list():
+            if seg is None:
+                continue
+            if seg.grid_x == grid_x and seg.grid_y == grid_y:
+                return seg
+        return None
+
     def __repr__(self) -> str:
         return f"up={self.up},left={self.left},down={self.down},right={self.right},up_left={self.up_left},up_right={self.up_right},down_left={self.down_left},down_right={self.down_right}"
 
@@ -51,27 +71,27 @@ class ScreenSegment:
         if obj.position.y < self.position.y:
             if obj.position.x < self.position.x:
                 self.pass_to_neighbour(obj, self.neighbours.up_left)
-                pass
+                return
             if obj.position.x > self.position.x + Settings.SEGMENT_SIZE:
                 self.pass_to_neighbour(obj, self.neighbours.up_right)
-                pass
+                return
             self.pass_to_neighbour(obj, self.neighbours.up)
-            pass
+            return
         if obj.position.y > self.position.y + Settings.SEGMENT_SIZE:
             if obj.position.x < self.position.x:
                 self.pass_to_neighbour(obj, self.neighbours.down_left)
-                pass
+                return
             if obj.position.x > self.position.x + Settings.SEGMENT_SIZE:
                 self.pass_to_neighbour(obj, self.neighbours.down_right)
-                pass
+                return
             self.pass_to_neighbour(obj, self.neighbours.down)
-            pass
+            return
         if obj.position.x < self.position.x:
             self.pass_to_neighbour(obj, self.neighbours.left)
-            pass
+            return
         if obj.position.x > self.position.x + Settings.SEGMENT_SIZE:
             self.pass_to_neighbour(obj, self.neighbours.right)
-        pass
+        return
 
     def update(self):
         for obj in self.objects:

@@ -5,7 +5,8 @@ from Ball import Ball
 from CommonTypes import Vector
 import Settings
 from enum import Enum
-from ScreenSegment import *;
+from ScreenSegment import *
+from Tree import Tree;
 
 class RunningState(Enum):
     STARTED = 0
@@ -18,30 +19,34 @@ class App:
         self.screen = pygame.display.set_mode((Settings.WIDTH, Settings.HEIGHT))
         pygame.display.set_caption("DLA Algorithm")
         self.clock = pygame.time.Clock()
+        self.font = pygame.font.Font(None, 20)
         self.state: RunningState = RunningState.STARTED
         self.segment_grid: SegmentGrid = SegmentGrid()
+        self.tree: Tree = Tree()
+        self.init_tree()
         pass
 
     def __del__(self) -> None:
         pygame.quit()
 
-    # def update_objects(self) -> None:
-    #     for obj in self.objects:
-    #         obj.update(1/Settings.FPS)
-    #     pass
+    def draw_fps(self) -> None:
+        fps = self.clock.get_fps()
+        fps_text = self.font.render(f"FPS: {int(fps)}", True, Color.sample["WHITE"])
+        self.screen.blit(fps_text, (5,5))
 
-    # def draw_objects(self) -> None:
-    #     for obj in self.objects:
-    #         obj.draw(self.screen)
-    #     pass
+    def init_tree(self) -> None:
+        self.tree.append_segment(self.segment_grid.get_segment(Settings.TREE_INIT_SEGMENT[0], Settings.TREE_INIT_SEGMENT[1]))
+        # self.tree.tree_segments[0].objects[0].is_stuck = True
+        init_segment = next(iter(self.tree.tree_segments))
+        self.tree.append_object(init_segment.objects[0])
+        pass
 
     def debug_draw(self) -> None:
         self.segment_grid.debug_draw(self.screen)
+        self.tree.debug_draw(self.screen)
 
-    def run(self) -> None:
-        while self.state is not RunningState.DONE:
-            self.screen.fill(Color.sample["BLACK"])
-            for event in pygame.event.get():
+    def handle_events(self) -> None:
+        for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.state = RunningState.DONE
                 if event.type == pygame.KEYDOWN:
@@ -50,15 +55,29 @@ class App:
                             self.state = RunningState.STARTED
                         else:
                             self.state = RunningState.PAUSED
+                    if event.key == pygame.K_s:
+                        Settings.DEBUG_DRAW = not Settings.DEBUG_DRAW
 
-                
+    def run(self) -> None:
+        while self.state is not RunningState.DONE:
+            self.screen.fill(Color.sample["BLACK"])
+            
+            self.handle_events()
+
             if self.state is RunningState.STARTED:
                 self.segment_grid.update()
+                self.tree.handle_collisions_in_segments()
+                self.tree.handle_collisions_in_neighbours()
+                self.tree.update_tree_objects()
+                self.tree.update_tree_segments()
                 
             self.segment_grid.draw(self.screen)
 
             if Settings.DEBUG_DRAW:
                 self.debug_draw()
+
+            if Settings.SHOW_FPS:
+                self.draw_fps()
 
             pygame.display.flip()
             self.clock.tick(Settings.FPS)

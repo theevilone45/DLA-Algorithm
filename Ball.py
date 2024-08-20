@@ -20,6 +20,7 @@ class Ball:
         self.velocity: Vector = origin()
         self.radius: int = Settings.RADIUS
         self.color: Color = Color.sample["RED"]
+        self.is_stuck: bool = False
         pass
 
     def draw(self, screen):
@@ -50,6 +51,9 @@ class Ball:
             self.velocity.y = -self.velocity.y
 
     def update(self, dt) -> None:
+        if self.is_stuck:
+            self.color = Color.sample["MAGENTA"]
+            return
         self.handle_boundry_hit(dt)
         if self.update_count == Settings.VELOCITY_UPDATE_FREQ:
             self.velocity = random_vec(Settings.MAX_VELOCITY)
