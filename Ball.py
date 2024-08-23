@@ -1,6 +1,6 @@
 import math
 from random import randint
-from typing import Self
+from typing import Self, Tuple
 from pygame import gfxdraw
 import Color
 import Settings
@@ -20,8 +20,10 @@ class Ball:
         self.velocity: Vector = origin()
         self.radius: int = Settings.RADIUS
         self.color: Color = Color.sample["RED"]
-        self.is_stuck: bool = False
         pass
+
+    def get_segment_id(self) -> Tuple[int, int]:
+        return (int(self.position.x // Settings.SEGMENT_SIZE), int(self.position.y // Settings.SEGMENT_SIZE))
 
     def draw(self, screen):
         gfxdraw.aacircle(screen, int(self.position.x), int(self.position.y), int(self.radius), self.color)
@@ -51,9 +53,6 @@ class Ball:
             self.velocity.y = -self.velocity.y
 
     def update(self, dt) -> None:
-        if self.is_stuck:
-            self.color = Color.sample["MAGENTA"]
-            return
         self.handle_boundry_hit(dt)
         if self.update_count == Settings.VELOCITY_UPDATE_FREQ:
             self.velocity = random_vec(Settings.MAX_VELOCITY)

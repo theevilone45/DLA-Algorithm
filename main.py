@@ -22,7 +22,7 @@ class App:
         self.font = pygame.font.Font(None, 20)
         self.state: RunningState = RunningState.STARTED
         self.segment_grid: SegmentGrid = SegmentGrid()
-        self.tree: Tree = Tree()
+        self.tree: Tree = Tree(self.segment_grid)
         self.init_tree()
         pass
 
@@ -35,9 +35,7 @@ class App:
         self.screen.blit(fps_text, (5,5))
 
     def init_tree(self) -> None:
-        self.tree.append_segment(self.segment_grid.get_segment(Settings.TREE_INIT_SEGMENT[0], Settings.TREE_INIT_SEGMENT[1]))
-        # self.tree.tree_segments[0].objects[0].is_stuck = True
-        init_segment = next(iter(self.tree.tree_segments))
+        init_segment = self.segment_grid[Settings.TREE_INIT_SEGMENT[0], Settings.TREE_INIT_SEGMENT[1]]
         self.tree.append_object(init_segment.objects[0])
         pass
 
@@ -66,10 +64,11 @@ class App:
 
             if self.state is RunningState.STARTED:
                 self.segment_grid.update()
-                self.tree.handle_collisions_in_segments()
-                self.tree.handle_collisions_in_neighbours()
-                self.tree.update_tree_objects()
-                self.tree.update_tree_segments()
+                self.tree.handle_collisions()
+                # self.tree.handle_collisions_in_segments()
+                # self.tree.handle_collisions_in_neighbours()
+                # self.tree.update_tree_objects()
+                # self.tree.update_tree_segments()
                 
             self.segment_grid.draw(self.screen)
 

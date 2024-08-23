@@ -19,7 +19,7 @@ class Neighbours:
         self.down_right: ScreenSegment = None
 
     def get_list(self): # type: ignore
-        return [
+        result = [
             self.up,
             self.left,
             self.down,
@@ -29,6 +29,7 @@ class Neighbours:
             self.down_left,
             self.down_right,
         ]
+        return [x for x in result if x is not None]
     
     def get_neighbour(self, grid_x: int, grid_y: int):
         for seg in self.get_list():
@@ -44,6 +45,7 @@ class Neighbours:
 class ScreenSegment:
     def __init__(self, grid_x: int, grid_y: int, index: int) -> None:
         self.objects: List[Ball] = []
+        self.tree_objects: List[Ball] = []
         self.neighbours: Neighbours = Neighbours()
         self.index: int = index
         self.grid_x: int = grid_x
@@ -59,10 +61,19 @@ class ScreenSegment:
         for obj in self.objects:
             obj.draw(screen)
 
+        for obj in self.tree_objects:
+            obj.draw(screen)
+
+    def add_to_tree(self, obj: Ball) -> None:
+        if obj not in self.objects:
+            return
+        self.objects.remove(obj)
+        self.tree_objects.append(obj)
+
     def pass_to_neighbour(self, obj: Ball, neighbour) -> None:
         if neighbour is None:
             return
-        if self.objects.count(obj) == 0:
+        if obj not in self.objects:
             return
         self.objects.remove(obj)
         neighbour.objects.append(obj)
@@ -147,50 +158,50 @@ class SegmentGrid:
     def populate_middle_neighbours(self) -> None:
         for i in range(1, self.grid_width - 1):
             for j in range(1, self.grid_height - 1):
-                self.get_segment(i,j).neighbours.up = self.get_segment(i, j-1)
-                self.get_segment(i,j).neighbours.left = self.get_segment(i-1, j)
-                self.get_segment(i,j).neighbours.down = self.get_segment(i, j+1)
-                self.get_segment(i,j).neighbours.right = self.get_segment(i+1, j)
-                self.get_segment(i,j).neighbours.up_left = self.get_segment(i-1, j-1)
-                self.get_segment(i,j).neighbours.up_right = self.get_segment(i+1, j-1)
-                self.get_segment(i,j).neighbours.down_left = self.get_segment(i-1, j+1)
-                self.get_segment(i,j).neighbours.down_right = self.get_segment(i+1, j+1)
+                self[i,j].neighbours.up = self[i, j-1]
+                self[i,j].neighbours.left = self[i-1, j]
+                self[i,j].neighbours.down = self[i, j+1]
+                self[i,j].neighbours.right = self[i+1, j]
+                self[i,j].neighbours.up_left = self[i-1, j-1]
+                self[i,j].neighbours.up_right = self[i+1, j-1]
+                self[i,j].neighbours.down_left = self[i-1, j+1]
+                self[i,j].neighbours.down_right = self[i+1, j+1]
 
     def populate_up_border_neighbours(self) -> None:
         for i in range(self.grid_width):
             if i > 0:
-                self.get_segment(i,0).neighbours.left = self.get_segment(i-1, 0)
-                self.get_segment(i,0).neighbours.down_left = self.get_segment(i-1, 1)
+                self[i,0].neighbours.left = self[i-1, 0]
+                self[i,0].neighbours.down_left = self[i-1, 1]
             if i < self.grid_width - 1:
-                self.get_segment(i,0).neighbours.right = self.get_segment(i+1, 0)
-                self.get_segment(i,0).neighbours.down_right = self.get_segment(i+1, 1)
-            self.get_segment(i,0).neighbours.down = self.get_segment(i, 1)
+                self[i,0].neighbours.right = self[i+1, 0]
+                self[i,0].neighbours.down_right = self[i+1, 1]
+            self[i,0].neighbours.down = self[i, 1]
 
     def populate_down_border_neighbours(self) -> None:
         for i in range(self.grid_width):
             if i > 0:
-                self.get_segment(i,self.grid_height - 1).neighbours.left = self.get_segment(i-1, self.grid_height - 1)
-                self.get_segment(i,self.grid_height - 1).neighbours.up_left = self.get_segment(i-1, self.grid_height - 2)
+                self[i,self.grid_height - 1].neighbours.left = self[i-1, self.grid_height - 1]
+                self[i,self.grid_height - 1].neighbours.up_left = self[i-1, self.grid_height - 2]
             if i < self.grid_width - 1:
-                self.get_segment(i,self.grid_height - 1).neighbours.right = self.get_segment(i+1, self.grid_height - 1)
-                self.get_segment(i,self.grid_height - 1).neighbours.up_right = self.get_segment(i+1, self.grid_height - 2)
-            self.get_segment(i,self.grid_height - 1).neighbours.up = self.get_segment(i, self.grid_height - 2)
+                self[i,self.grid_height - 1].neighbours.right = self[i+1, self.grid_height - 1]
+                self[i,self.grid_height - 1].neighbours.up_right = self[i+1, self.grid_height - 2]
+            self[i,self.grid_height - 1].neighbours.up = self[i, self.grid_height - 2]
 
     def populate_left_border_neighbours(self) -> None:
         for j in range(1, self.grid_height-1):
-            self.get_segment(0, j).neighbours.up = self.get_segment(0, j-1)
-            self.get_segment(0, j).neighbours.right = self.get_segment(1, j)
-            self.get_segment(0, j).neighbours.down = self.get_segment(0, j+1)
-            self.get_segment(0, j).neighbours.up_right = self.get_segment(1, j-1)
-            self.get_segment(0, j).neighbours.down_right = self.get_segment(1, j+1)
+            self[0, j].neighbours.up = self[0, j-1]
+            self[0, j].neighbours.right = self[1, j]
+            self[0, j].neighbours.down = self[0, j+1]
+            self[0, j].neighbours.up_right = self[1, j-1]
+            self[0, j].neighbours.down_right = self[1, j+1]
 
     def populate_right_border_neighbours(self) -> None:
         for j in range(1, self.grid_height-1):
-            self.get_segment(self.grid_width - 1, j).neighbours.up = self.get_segment(self.grid_width - 1, j-1)
-            self.get_segment(self.grid_width - 1, j).neighbours.left = self.get_segment(self.grid_width - 2, j)
-            self.get_segment(self.grid_width - 1, j).neighbours.down = self.get_segment(self.grid_width - 1, j+1)
-            self.get_segment(self.grid_width - 1, j).neighbours.up_left = self.get_segment(self.grid_width - 2, j-1)
-            self.get_segment(self.grid_width - 1, j).neighbours.down_left = self.get_segment(self.grid_width - 2, j+1)
+            self[self.grid_width - 1, j].neighbours.up = self[self.grid_width - 1, j-1]
+            self[self.grid_width - 1, j].neighbours.left = self[self.grid_width - 2, j]
+            self[self.grid_width - 1, j].neighbours.down = self[self.grid_width - 1, j+1]
+            self[self.grid_width - 1, j].neighbours.up_left = self[self.grid_width - 2, j-1]
+            self[self.grid_width - 1, j].neighbours.down_left = self[self.grid_width - 2, j+1]
 
     def populate_neighbours(self) -> None:
         self.populate_middle_neighbours()
@@ -208,7 +219,8 @@ class SegmentGrid:
         for seg in self.segments:
             seg.update()
     
-    def get_segment(self, grid_x, grid_y) -> ScreenSegment:
+    def __getitem__(self, grid_pos) -> ScreenSegment:
+        grid_x, grid_y = grid_pos
         return self.segments[grid_x * self.grid_height + grid_y]
 
     def debug_draw(self, screen: pygame.Surface) -> None:

@@ -4,90 +4,51 @@ import pygame
 from pygame import gfxdraw
 from Ball import Ball
 from CommonTypes import Vector
-from ScreenSegment import ScreenSegment
+from ScreenSegment import ScreenSegment, SegmentGrid
 import Settings
 import Color
 
 
 class Tree:
-    def __init__(self) -> None:
-        self.tree_segments: Set[ScreenSegment] = set()
-        self.tree_neighbours: Set[ScreenSegment] = set()
-        self.tree_objects: Set[Ball] = set()
-        self.object_update_list: List[Ball] = []
-        self.segment_update_list: List[ScreenSegment] = []
-        pass
-
-    def append_neighbours(self, segment: ScreenSegment) -> None:
-        self.tree_neighbours.update(segment.neighbours.get_list())
-        self.tree_neighbours.discard(None)
+    def __init__(self, segments: SegmentGrid) -> None:
+        self.objects: List[Ball] = []
+        self.segments: SegmentGrid = segments
         pass
 
     def append_object(self, obj: Ball) -> None:
-        self.tree_objects.add(obj)
-    
-    def append_to_update_list(self, obj: Ball) -> None:
-        self.object_update_list.append(obj)
+        obj.is_stuck = True
+        obj.color = Color.sample["GREEN"]
+        self.objects.append(obj)
+        seg = self.segments[obj.get_segment_id()]
+        seg.add_to_tree(obj)
 
-    def append_segment(self, segment: ScreenSegment) -> None:
-        self.tree_segments.add(segment)
-        self.append_neighbours(segment)
+
+
+    def handle_collisions_in_segment(self, obj: Ball, seg: ScreenSegment) -> None:
+        all_segments = seg.neighbours.get_list()
+        all_segments.append(seg)
+        for ss in all_segments:
+            for other in ss.objects:
+                if obj is other:
+                    continue
+                distance = other.distance(obj)
+                if distance <= obj.radius + other.radius:
+                    overlap = obj.radius + other.radius - distance
+                    dx = (other.position.x - obj.position.x) / distance
+                    dy = (other.position.y - obj.position.y) / distance
+                    other.position.x += dx * overlap
+                    other.position.y += dy * overlap
+                    self.append_object(other)
+                    
+
+    def handle_collisions(self) -> None:
+        for obj in self.objects:
+            # get segment
+            seg_id = obj.get_segment_id()
+            seg = self.segments[seg_id]
+            self.handle_collisions_in_segment(obj, seg)
+            pass
         pass
-
-    def update_tree_objects(self) -> None:
-        self.tree_objects.update(self.object_update_list)
-        self.object_update_list.clear()
-
-    def update_tree_segments(self) -> None:
-        for seg in self.segment_update_list:
-            self.append_segment(seg)
-        self.segment_update_list.clear()
-
-    def handle_collision_with_tree(self, other: Ball) -> bool:
-        for obj in self.tree_objects:
-            if obj is other:
-                continue
-
-            distance = obj.distance(other)
-            if distance <= obj.radius + other.radius:
-                overlap = obj.radius + other.radius - distance
-                dx = (other.position.x - obj.position.x) / distance
-                dy = (other.position.y - obj.position.y) / distance
-                # obj.position.x -= dx * separation
-                # obj.position.y -= dy * separation
-                other.position.x += dx * overlap
-                other.position.y += dy * overlap
-
-                other.is_stuck = True
-                self.append_to_update_list(other)
-                return True
-        return False
-
-    def handle_collisions_in_segments(self) -> None:
-        for seg in self.tree_segments:
-            for obj in seg.objects:
-                self.handle_collision_with_tree(obj)
-        pass
-
-    def handle_collisions_in_neighbours(self) -> None:
-        for seg in self.tree_neighbours:
-            for obj in seg.objects:
-                if self.handle_collision_with_tree(obj):
-                    self.segment_update_list.append(seg)
-                # if collision_pos is not None:
-                #     self.append_segment(seg)
 
     def debug_draw(self, screen: pygame.Surface) -> None:
-        for neighbour in self.tree_neighbours:
-            gfxdraw.rectangle(
-                screen,
-                pygame.Rect(neighbour.position.x, neighbour.position.y, Settings.SEGMENT_SIZE+1, Settings.SEGMENT_SIZE+1),
-                Color.sample["BLUE"],
-            )
-        for seg in self.tree_segments:
-            gfxdraw.rectangle(
-                screen,
-                pygame.Rect(seg.position.x, seg.position.y, Settings.SEGMENT_SIZE+1, Settings.SEGMENT_SIZE+1),
-                Color.sample["GREEN"],
-            )
         pass
