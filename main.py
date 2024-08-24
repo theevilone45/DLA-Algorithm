@@ -59,25 +59,18 @@ class App:
     def run(self) -> None:
         while self.state is not RunningState.DONE:
             self.screen.fill(Color.sample["BLACK"])
-            
             self.handle_events()
-
             if self.state is RunningState.STARTED:
                 self.segment_grid.update()
                 self.tree.handle_collisions()
-                # self.tree.handle_collisions_in_segments()
-                # self.tree.handle_collisions_in_neighbours()
-                # self.tree.update_tree_objects()
-                # self.tree.update_tree_segments()
-                
+                self.tree.apply_next_objects()
+                  
             self.segment_grid.draw(self.screen)
-
             if Settings.DEBUG_DRAW:
                 self.debug_draw()
 
             if Settings.SHOW_FPS:
                 self.draw_fps()
-
             pygame.display.flip()
             self.clock.tick(Settings.FPS)
         pass

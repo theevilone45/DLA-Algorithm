@@ -29,9 +29,12 @@ class Neighbours:
             self.down_left,
             self.down_right,
         ]
-        return [x for x in result if x is not None]
+        result = [x for x in result if x is not None]
+        #
+        return result
     
     def get_neighbour(self, grid_x: int, grid_y: int):
+        #
         for seg in self.get_list():
             if seg is None:
                 continue
@@ -44,6 +47,7 @@ class Neighbours:
 
 class ScreenSegment:
     def __init__(self, grid_x: int, grid_y: int, index: int) -> None:
+        #
         self.objects: List[Ball] = []
         self.tree_objects: List[Ball] = []
         self.neighbours: Neighbours = Neighbours()
@@ -58,6 +62,7 @@ class ScreenSegment:
         self.add_objects()
 
     def draw(self, screen: pygame.Surface):
+        #
         for obj in self.objects:
             obj.draw(screen)
 
@@ -65,12 +70,14 @@ class ScreenSegment:
             obj.draw(screen)
 
     def add_to_tree(self, obj: Ball) -> None:
+        #
         if obj not in self.objects:
             return
         self.objects.remove(obj)
         self.tree_objects.append(obj)
 
     def pass_to_neighbour(self, obj: Ball, neighbour) -> None:
+        #
         if neighbour is None:
             return
         if obj not in self.objects:
@@ -79,6 +86,7 @@ class ScreenSegment:
         neighbour.objects.append(obj)
 
     def handle_object_pass(self, obj: Ball) -> None:
+        #
         if obj.position.y < self.position.y:
             if obj.position.x < self.position.x:
                 self.pass_to_neighbour(obj, self.neighbours.up_left)
@@ -105,11 +113,13 @@ class ScreenSegment:
         return
 
     def update(self):
+        #
         for obj in self.objects:
             obj.update(1/Settings.FPS)
             self.handle_object_pass(obj)
 
     def add_objects(self) -> None:
+        #
         for i in range(Settings.OBJECTS_PER_SEGMENT):
             random_position: Vector = random_vec_in_range(self.position, self.position + Vector(Settings.SEGMENT_SIZE, Settings.SEGMENT_SIZE))
             self.objects.append(Ball(random_position))
